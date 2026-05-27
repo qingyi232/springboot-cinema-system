@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.platform.mapper.GoodsOrderMapper">
+    <select id="queryPage" resultType="com.project.platform.entity.GoodsOrder">
+        SELECT goods_order.*, user.username AS userName
+        FROM goods_order
+        LEFT JOIN user ON goods_order.user_id = user.id
+        <include refid="queryConditions"/>
+        ORDER BY goods_order.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="queryCount" resultType="int">
+        SELECT COUNT(goods_order.id)
+        FROM goods_order
+        LEFT JOIN user ON goods_order.user_id = user.id
+        <include refid="queryConditions"/>
+    </select>
+
+    <sql id="queryConditions">
+        <where>
+            <if test="query.userId != null and query.userId != 0">
+                AND goods_order.user_id = #{query.userId}
+            </if>
+            <if test="query.paymentMethod != null and query.paymentMethod.trim() != ''">
+                AND goods_order.payment_method = #{query.paymentMethod}
+            </if>
+            <if test="query.status != null and query.status.trim() != ''">
+                AND goods_order.status = #{query.status}
+            </if>
+            <if test="query.goodsName != null and query.goodsName.trim() != ''">
+                AND goods_order.goods_name LIKE CONCAT('%', #{query.goodsName}, '%')
+            </if>
+            <if test="query.hasEvaluate != null and query.hasEvaluate != ''">
+                <choose>
+                    <when test="query.hasEvaluate == '1'">
+                        AND goods_order.evaluate_time IS NOT NULL
+                    </when>
+                    <when test="query.hasEvaluate == '0'">
+                        AND goods_order.evaluate_time IS NULL
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <insert id="insert" parameterType="com.project.platform.entity.GoodsOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO goods_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="goodsId != null">goods_id,</if>
+            <if test="goodsName != null">goods_name,</if>
+            <if test="goodsMainImg != null">goods_main_img,</if>
+            <if test="unitPrice != null">unit_price,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="totalPrice != null">total_price,</if>
+            <if test="paymentMethod != null">payment_method,</if>
+            <if test="status != null">status,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="evaluateContent != null">evaluate_content,</if>
+            <if test="evaluateRate != null">evaluate_rate,</if>
+            <if test="evaluateTime != null">evaluate_time,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="goodsId != null">#{goodsId},</if>
+            <if test="goodsName != null">#{goodsName},</if>
+            <if test="goodsMainImg != null">#{goodsMainImg},</if>
+            <if test="unitPrice != null">#{unitPrice},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="totalPrice != null">#{totalPrice},</if>
+            <if test="paymentMethod != null">#{paymentMethod},</if>
+            <if test="status != null">#{status},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="evaluateContent != null">#{evaluateContent},</if>
+            <if test="evaluateRate != null">#{evaluateRate},</if>
+            <if test="evaluateTime != null">#{evaluateTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="com.project.platform.entity.GoodsOrder">
+        UPDATE goods_order
+        <set>
+            <if test="goodsId != null">goods_id = #{goodsId},</if>
+            <if test="goodsName != null">goods_name = #{goodsName},</if>
+            <if test="goodsMainImg != null">goods_main_img = #{goodsMainImg},</if>
+            <if test="unitPrice != null">unit_price = #{unitPrice},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="totalPrice != null">total_price = #{totalPrice},</if>
+            <if test="paymentMethod != null">payment_method = #{paymentMethod},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="evaluateContent != null">evaluate_content = #{evaluateContent},</if>
+            <if test="evaluateRate != null">evaluate_rate = #{evaluateRate},</if>
+            <if test="evaluateTime != null">evaluate_time = #{evaluateTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="removeByIds">
+        DELETE FROM goods_order
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

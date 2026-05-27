@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.platform.mapper.MovieMapper">
+    <!-- 分页查询 -->
+    <select id="queryPage" resultType="com.project.platform.entity.Movie">
+        SELECT movie.*
+        ,lowest_price_plan.lowest_price AS lowestPrice
+        ,current_collect.id AS movieCollectId
+        ,movie_region.name AS movieRegionName
+        ,movie_type.name AS movieTypeName
+        ,movie_years.name AS movieYearsName
+        FROM movie
+        LEFT JOIN (
+            SELECT movie_id, MIN(price) AS lowest_price
+            FROM screening_plan
+            WHERE start_time >= NOW()
+              AND price IS NOT NULL
+              AND price > 0
+            GROUP BY movie_id
+        ) lowest_price_plan ON movie.id = lowest_price_plan.movie_id
+        LEFT JOIN movie_collect current_collect ON movie.id = current_collect.movie_id
+            AND current_collect.user_id = #{query.currentUserId}
+        LEFT JOIN movie_region ON movie.movie_region_id=movie_region.id
+        LEFT JOIN movie_type ON movie.movie_type_id=movie_type.id
+        LEFT JOIN movie_years ON movie.movie_years_id=movie_years.id
+        <include refid="queryConditions"/>
+        ORDER BY CASE WHEN lowest_price_plan.lowest_price IS NULL THEN 1 ELSE 0 END, movie.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    <!-- 查询总数 -->
+    <select id="queryCount" resultType="int">
+        SELECT count(movie.id) FROM movie
+        LEFT JOIN movie_region ON movie.movie_region_id=movie_region.id
+        LEFT JOIN movie_type ON movie.movie_type_id=movie_type.id
+        LEFT JOIN movie_years ON movie.movie_years_id=movie_years.id
+        <include refid="queryConditions"/>
+    </select>
+
+    <!-- 查询条件 -->
+    <sql id="queryConditions">
+        <where>
+            <if test="query.name != null and query.name.trim() != ''">
+                AND movie.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.movieTypeId != null and query.movieTypeId != '' and query.movieTypeId != 0">
+                AND movie.movie_type_id = #{query.movieTypeId}
+            </if>
+            <if test="query.movieYearsId != null and query.movieYearsId != '' and query.movieYearsId != 0">
+                AND movie.movie_years_id = #{query.movieYearsId}
+            </if>
+            <if test="query.movieRegionId != null and query.movieRegionId != '' and query.movieRegionId != 0">
+                AND movie.movie_region_id = #{query.movieRegionId}
+            </if>
+            <if test="query.id != null">
+                AND movie.id = #{query.id}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.project.platform.entity.Movie" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO movie
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="mainImg != null">main_img,</if>
+            <if test="movieTypeId != null">movie_type_id,</if>
+            <if test="movieYearsId != null">movie_years_id,</if>
+            <if test="movieRegionId != null">movie_region_id,</if>
+            <if test="releaseDate != null">release_date,</if>
+            <if test="duration != null">duration,</if>
+            <if test="director != null">director,</if>
+            <if test="protagonist != null">protagonist,</if>
+            <if test="intro != null">intro,</if>
+            <if test="imgs != null">imgs,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="mainImg != null">#{mainImg},</if>
+            <if test="movieTypeId != null">#{movieTypeId},</if>
+            <if test="movieYearsId != null">#{movieYearsId},</if>
+            <if test="movieRegionId != null">#{movieRegionId},</if>
+            <if test="releaseDate != null">#{releaseDate},</if>
+            <if test="duration != null">#{duration},</if>
+            <if test="director != null">#{director},</if>
+            <if test="protagonist != null">#{protagonist},</if>
+            <if test="intro != null">#{intro},</if>
+            <if test="imgs != null">#{imgs},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+
+
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updateById" parameterType="com.project.platform.entity.Movie">
+        UPDATE movie
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="mainImg != null">
+                main_img = #{mainImg},
+            </if>
+            <if test="movieTypeId != null">
+                movie_type_id = #{movieTypeId},
+            </if>
+            <if test="movieYearsId != null">
+                movie_years_id = #{movieYearsId},
+            </if>
+            <if test="movieRegionId != null">
+                movie_region_id = #{movieRegionId},
+            </if>
+            <if test="releaseDate != null">
+                release_date = #{releaseDate},
+            </if>
+            <if test="duration != null">
+                duration = #{duration},
+            </if>
+            <if test="director != null">
+                director = #{director},
+            </if>
+            <if test="protagonist != null">
+                protagonist = #{protagonist},
+            </if>
+            <if test="intro != null">
+                intro = #{intro},
+            </if>
+            <if test="imgs != null">
+                imgs = #{imgs},
+            </if>
+            <if test="boxOffice != null">
+                box_office = #{boxOffice},
+            </if>
+            <if test="score != null">
+                score = #{score},
+            </if>
+
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <!-- 根据ID列表删除 -->
+    <delete id="removeByIds">
+        DELETE FROM movie
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

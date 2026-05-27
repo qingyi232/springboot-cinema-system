@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.platform.mapper.ScreeningPlanMapper">
+    <!-- 分页查询 -->
+    <select id="queryPage"  resultType="com.project.platform.entity.ScreeningPlan">
+        SELECT screening_plan.*
+               ,movie.name AS movieName
+               ,movie_room.name AS movieRoomName
+               ,cinema.nickname AS cinemaName
+        FROM screening_plan
+        LEFT JOIN movie ON screening_plan.movie_id=movie.id
+        LEFT JOIN movie_room ON screening_plan.movie_room_id=movie_room.id
+        LEFT JOIN cinema ON screening_plan.cinema_id=cinema.id
+        <include refid="queryConditions"/>
+        ORDER BY screening_plan.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    <!-- 查询总数 -->
+    <select id="queryCount"  resultType="int">
+        SELECT count(screening_plan.id) FROM screening_plan
+        LEFT JOIN movie ON screening_plan.movie_id=movie.id
+        LEFT JOIN movie_room ON screening_plan.movie_room_id=movie_room.id
+        LEFT JOIN cinema ON screening_plan.cinema_id=cinema.id
+        <include refid="queryConditions"/>
+    </select>
+
+    <!-- 查询条件 -->
+    <sql id="queryConditions">
+        <where>
+          <if test="query.cinemaId != null and query.cinemaId != 0">
+            AND screening_plan.cinema_id = #{query.cinemaId}
+          </if>
+          <if test="query.movieRoomId != null and query.movieRoomId != 0">
+            AND screening_plan.movie_room_id = #{query.movieRoomId}
+          </if>
+          <if test="query.movieId != null and query.movieId != 0">
+            AND screening_plan.movie_id = #{query.movieId}
+          </if>
+        </where>
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.project.platform.entity.ScreeningPlan" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO screening_plan
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cinemaId != null">cinema_id,</if>
+            <if test="movieRoomId != null">movie_room_id,</if>
+            <if test="movieId != null">movie_id,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="price != null">price,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cinemaId != null">#{cinemaId},</if>
+            <if test="movieRoomId != null">#{movieRoomId},</if>
+            <if test="movieId != null">#{movieId},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="price != null">#{price},</if>
+        </trim>
+
+
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updateById" parameterType="com.project.platform.entity.ScreeningPlan">
+        UPDATE screening_plan
+        <set>
+            <if test="cinemaId != null">
+             cinema_id = #{cinemaId},
+            </if>
+            <if test="movieRoomId != null">
+             movie_room_id = #{movieRoomId},
+            </if>
+            <if test="movieId != null">
+             movie_id = #{movieId},
+            </if>
+            <if test="startTime != null">
+             start_time = #{startTime},
+            </if>
+            <if test="endTime != null">
+             end_time = #{endTime},
+            </if>
+            <if test="price != null">
+             price = #{price},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <!-- 根据ID列表删除 -->
+    <delete id="removeByIds">
+        DELETE FROM screening_plan
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>    
+</mapper>

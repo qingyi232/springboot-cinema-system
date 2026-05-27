@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.platform.mapper.MovieRoomMapper">
+    <!-- 分页查询 -->
+    <select id="queryPage"  resultType="com.project.platform.entity.MovieRoom">
+        SELECT movie_room.*
+        ,cinema.nickname AS cinemaName
+        FROM movie_room
+        LEFT JOIN cinema ON movie_room.cinema_id=cinema.id
+        <include refid="queryConditions"/>
+        ORDER BY movie_room.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    <!-- 查询总数 -->
+    <select id="queryCount"  resultType="int">
+        SELECT count(movie_room.id) FROM movie_room
+        LEFT JOIN cinema ON movie_room.cinema_id=cinema.id
+        <include refid="queryConditions"/>
+    </select>
+
+    <!-- 查询条件 -->
+    <sql id="queryConditions">
+        <where>
+            <if test="query.name != null and query.name.trim() != ''">
+                AND movie_room.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.cinemaId != null and query.cinemaId != 0">
+                AND movie_room.cinema_id = #{query.cinemaId}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.project.platform.entity.MovieRoom" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO movie_room
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="label != null">label,</if>
+            <if test="cinemaId != null">cinema_id,</if>
+            <if test="numberOfX != null">number_of_x,</if>
+            <if test="numberOfY != null">number_of_y,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="label != null">#{label},</if>
+            <if test="cinemaId != null">#{cinemaId},</if>
+            <if test="numberOfX != null">#{numberOfX},</if>
+            <if test="numberOfY != null">#{numberOfY},</if>
+        </trim>
+
+
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updateById" parameterType="com.project.platform.entity.MovieRoom">
+        UPDATE movie_room
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="label != null">
+                label = #{label},
+            </if>
+            <if test="cinemaId != null">
+                cinema_id = #{cinemaId},
+            </if>
+            <if test="numberOfX != null">
+                number_of_x = #{numberOfX},
+            </if>
+            <if test="numberOfY != null">
+                number_of_y = #{numberOfY},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <!-- 根据ID列表删除 -->
+    <delete id="removeByIds">
+        DELETE FROM movie_room
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
